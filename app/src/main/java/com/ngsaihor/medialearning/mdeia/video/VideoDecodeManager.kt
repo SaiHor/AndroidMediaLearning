@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 
-object VideoCodecManager {
+object VideoDecodeManager {
 
     private lateinit var mediaCodec: MediaCodec
     private var videoExtractor: MediaExtractor = MediaExtractor()

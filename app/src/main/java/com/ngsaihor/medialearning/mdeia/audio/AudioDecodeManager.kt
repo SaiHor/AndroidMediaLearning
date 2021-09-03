@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-object AudioCodecManager {
+object AudioDecodeManager {
     private lateinit var mediaCodec: MediaCodec
     private var audioExtractor: MediaExtractor = MediaExtractor()
     private var isStop = true
@@ -17,7 +17,7 @@ object AudioCodecManager {
     private var outputFilePath: String = output.absolutePath
     private lateinit var audioTrack: AudioTrack
 
-    suspend fun transformAACToPCM(filePath: String) {
+    suspend fun transformAudioFileToPCM(filePath: String) {
         if (initAudioDecoderByFilePath(filePath)) {
             startDecodeAACToPCM()
         } else {
@@ -25,9 +25,9 @@ object AudioCodecManager {
         }
     }
 
-    suspend fun playAAC(filePath: String) {
+    suspend fun playAudio(filePath: String) {
         initAudioDecoderByFilePath(filePath)
-        startPlayAAC()
+        startPlayAudio()
     }
 
     private fun initAudioDecoderByFilePath(filePath: String): Boolean {
@@ -55,8 +55,6 @@ object AudioCodecManager {
 
     //转换文件
     private suspend fun startDecodeAACToPCM() {
-        var firstLoad = true
-        var startTime = 0L
         val outputBufferInfo = MediaCodec.BufferInfo()
         isStop = false
         withContext(Dispatchers.IO) {
@@ -137,7 +135,7 @@ object AudioCodecManager {
     }
 
     //直接播放
-    private suspend fun startPlayAAC() {
+    private suspend fun startPlayAudio() {
         initAudioTrack()
         val outputBufferInfo = MediaCodec.BufferInfo()
         isStop = false

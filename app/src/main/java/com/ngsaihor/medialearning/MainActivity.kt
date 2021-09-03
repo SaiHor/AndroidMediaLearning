@@ -6,6 +6,7 @@ import android.view.SurfaceHolder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.ngsaihor.medialearning.databinding.ActivityMainBinding
+import com.ngsaihor.medialearning.mdeia.audio.AudioEncodeManager
 import com.ngsaihor.medialearning.mdeia.audio.AudioTrackManager
 import kotlinx.coroutines.launch
 import java.io.File
@@ -23,7 +24,10 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback2 {
             val rootsd  = Environment.getExternalStorageDirectory()
             val m4a = File(rootsd?.absolutePath.toString() + "/test10086/aac_input.m4a")
 //            AudioCodecManager.playAAC(m4a.absolutePath)
-            AudioTrackManager.playPcmByFileName(rootsd?.absolutePath.toString() + "/test10086/pcm_output.pcm",this@MainActivity)
+//            AudioTrackManager.playPcmByFileName(rootsd?.absolutePath.toString() + "/test10086/pcm_output.pcm",this@MainActivity)
+
+
+            AudioEncodeManager.encodeAction(rootsd?.absolutePath.toString() + "/test10086/pcm_output.pcm",rootsd?.absolutePath.toString() + "/test10086/aac_output.aac")
         }
 
 

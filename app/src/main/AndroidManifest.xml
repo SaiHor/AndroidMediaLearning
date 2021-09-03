@@ -14,7 +14,7 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AudioTest">
+        android:theme="@style/Theme.MediaLearning">
         <activity android:name="com.ngsaihor.medialearning.mdeia.video.MediaTestActivity"></activity>
         <activity android:name="com.ngsaihor.medialearning.camera.Camera2PreviewActivity" />
         <activity android:name="com.ngsaihor.medialearning.mdeia.audio.AudioPlayActivity" />
