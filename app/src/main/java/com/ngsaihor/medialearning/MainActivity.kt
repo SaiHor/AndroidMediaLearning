@@ -5,7 +5,7 @@ import android.os.Environment
 import android.view.SurfaceHolder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.audiotest.databinding.ActivityMainBinding
+import com.ngsaihor.medialearning.databinding.ActivityMainBinding
 import com.ngsaihor.medialearning.mdeia.audio.AudioTrackManager
 import kotlinx.coroutines.launch
 import java.io.File

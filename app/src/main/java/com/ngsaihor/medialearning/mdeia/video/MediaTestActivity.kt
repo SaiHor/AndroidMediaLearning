@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.audiotest.databinding.ActivityMediaTestBinding
+import com.ngsaihor.medialearning.databinding.ActivityMediaTestBinding
 import kotlinx.coroutines.launch
 import java.io.File
 

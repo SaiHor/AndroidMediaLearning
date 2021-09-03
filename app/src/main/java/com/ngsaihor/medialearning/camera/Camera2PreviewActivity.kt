@@ -14,7 +14,7 @@ import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import androidx.core.app.ActivityCompat
-import com.example.audiotest.databinding.ActivityCamera2PreviewBinding
+import com.ngsaihor.medialearning.databinding.ActivityCamera2PreviewBinding
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingDeque
 

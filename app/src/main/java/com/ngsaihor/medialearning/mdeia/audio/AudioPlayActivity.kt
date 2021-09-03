@@ -2,7 +2,7 @@ package com.ngsaihor.medialearning.mdeia.audio
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.audiotest.R
+import com.ngsaihor.medialearning.R
 
 class AudioPlayActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
