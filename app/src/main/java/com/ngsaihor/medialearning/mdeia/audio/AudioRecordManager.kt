@@ -1,50 +1,56 @@
 package com.ngsaihor.medialearning.mdeia.audio
 
+import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.LinkedBlockingDeque
 
-object AudioRecordManager{
+object AudioRecordManager {
 
     private lateinit var audioRecord: AudioRecord
     private var bufferSize = 0
     private lateinit var bufferData: ByteArray
 
     private var isRecording = false
+    private var audioQueue: LinkedBlockingDeque<ByteArray> = LinkedBlockingDeque()
 
     private var fileName = ""
+    private var filePath = ""
+    private var outputFileName = ""
 
-    init {
-        initAudioRecord()
+
+    fun setFilePathAndName(path:String,outputName:String){
+        this.filePath = path
+        this.outputFileName = outputName
     }
 
     private fun initAudioRecord() {
         bufferSize =
-            AudioRecord.getMinBufferSize(AudioConfig.SAMPLE_RATE, AudioConfig.AUDIO_FORMAT, AudioConfig.CHANNEL_CONFIG)
+            AudioRecord.getMinBufferSize(AudioConfig.SAMPLE_RATE, AudioFormat.CHANNEL_IN_DEFAULT,AudioFormat.ENCODING_PCM_16BIT)
         audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
-            AudioConfig.SAMPLE_RATE, AudioConfig.AUDIO_FORMAT, AudioConfig.CHANNEL_CONFIG,
+            AudioConfig.SAMPLE_RATE,AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT,
             bufferSize
         )
         bufferData = ByteArray(bufferSize)
     }
 
-    fun startRecord(context: AppCompatActivity, isResume: Boolean = false) {
+    suspend fun startRecord(isResume: Boolean = false) {
+        initAudioRecord()
         isRecording = true
         audioRecord.startRecording()
         if (!isResume) {
             fileName = "${System.currentTimeMillis()}.pcm"
         }
-        context.lifecycleScope.launch(Dispatchers.IO) {
-            val filePath = context.cacheDir.absolutePath + "/" + fileName
+        withContext(Dispatchers.IO) {
+            val filePath = "$filePath/$fileName"
             var os: FileOutputStream? = null
             try {
                 os = FileOutputStream(filePath, isResume)
@@ -53,10 +59,12 @@ object AudioRecordManager{
             }
             if (os != null) {
                 while (isRecording) {
-                    val read = audioRecord.read(bufferData, 0, bufferSize)
+                    val audioData = ByteArray(bufferSize)
+                    val read = audioRecord.read(audioData, 0, bufferSize)
                     if (AudioRecord.ERROR_INVALID_OPERATION != read) {
                         try {
-                            os.write(bufferData)
+                            audioQueue.add(audioData)
+                            os.write(audioData)
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }
@@ -76,26 +84,35 @@ object AudioRecordManager{
         audioRecord.stop()
     }
 
-    fun resume(context: AppCompatActivity) {
+    suspend fun resume() {
         if (fileName.isBlank()) {
             return
         }
-        startRecord(context, true)
+        startRecord(true)
     }
 
     fun stop() {
         pause()
         fileName = ""
+        audioQueue.clear()
     }
 
-    fun stopAndTransformToWav(context: AppCompatActivity) {
+    suspend fun stopAndTransformToWav() {
         pause()
-        pcmToWav(context)
+        pcmToWav()
         fileName = ""
+        audioQueue.clear()
     }
 
-    private fun pcmToWav(context: AppCompatActivity) {
-        val filePath = context.cacheDir.absolutePath + "/"
+    suspend fun stopAndTransformToAAC() {
+        pause()
+        AudioEncodeManager.encodeAction(audioQueue,"$filePath/$outputFileName")
+        fileName = ""
+        audioQueue.clear()
+    }
+
+
+    private suspend fun pcmToWav() {
         val inFileName = filePath + fileName
         val outFileName = filePath + "${System.currentTimeMillis()}.wav"
 
@@ -104,7 +121,7 @@ object AudioRecordManager{
 
         Log.d("AudioRecordManager", "inFile:${inFileName}")
         Log.d("AudioRecordManager", "outFile:${outFileName}")
-        context.lifecycleScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             try {
                 val data = ByteArray(bufferSize)
                 val inStream = FileInputStream(inFileName)
@@ -125,9 +142,6 @@ object AudioRecordManager{
             } finally {
                 val file = File(outFileName)
                 Log.d("AudioRecordManager", "outFile path:${file.absolutePath} size:${file.length()}")
-            }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "转换完成", Toast.LENGTH_SHORT).show()
             }
         }
     }

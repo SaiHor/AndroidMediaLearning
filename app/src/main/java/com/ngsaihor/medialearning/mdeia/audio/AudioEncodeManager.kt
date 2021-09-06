@@ -3,11 +3,12 @@ package com.ngsaihor.medialearning.mdeia.audio
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.BufferedOutputStream
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.*
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.LinkedBlockingDeque
 
 
 object AudioEncodeManager {
@@ -17,12 +18,19 @@ object AudioEncodeManager {
     private var outputFilePath: String? = ""
     private var isStop = true
 
-    suspend fun encodeAction(inputFilePath:String,outputFilePath:String){
+    suspend fun encodeAction(inputFilePath: String, outputFilePath: String) {
         this.inputFilePath = inputFilePath
         this.outputFilePath = outputFilePath
         initEncodeFormat()
         initEncoder()
         encodeByFile()
+    }
+
+    suspend fun encodeAction(audioQueue: LinkedBlockingDeque<ByteArray>, outputFilePath: String) {
+        this.outputFilePath = outputFilePath
+        initEncodeFormat()
+        initEncoder()
+        encodeByBuffer(audioQueue)
     }
 
     private fun initEncodeFormat() {
@@ -60,25 +68,57 @@ object AudioEncodeManager {
 
                     val outputByteBuffer = ByteArray(bufferInfo.size + 7)
                     addADTStoPacket(outputByteBuffer, bufferInfo.size + 7)
-                    outBuffer?.get(outputByteBuffer,7,bufferInfo.size)
+                    outBuffer?.get(outputByteBuffer, 7, bufferInfo.size)
                     outBuffer?.position(bufferInfo.offset)
 
                     try {
-                        out.write(outputByteBuffer,0,outputByteBuffer.size)
+                        out.write(outputByteBuffer, 0, outputByteBuffer.size)
                         out.flush()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                     outBuffer?.position(bufferInfo.offset)
-                    mediaCodec.releaseOutputBuffer(outputIndex, false);
+                    mediaCodec.releaseOutputBuffer(outputIndex, false)
                 }
 
             }
         }
     }
 
-    private suspend fun encodeByBuffer() {
+    private suspend fun encodeByBuffer(audioQueue: LinkedBlockingDeque<ByteArray>) {
+        val out = BufferedOutputStream(FileOutputStream(outputFilePath, false))
+        withContext(Dispatchers.IO) {
+            val bufferInfo = MediaCodec.BufferInfo()
+            mediaCodec.start()
+            while (audioQueue.isNotEmpty()) {
+                mediaCodec.dequeueInputBuffer(0).takeIf { it >= 0 }?.let { index ->
+                    val inputBuffer = mediaCodec.getInputBuffer(index)
+                    val size = audioQueue.peek().size
+                    inputBuffer?.clear()
+                    inputBuffer?.put(audioQueue.poll())
+                    mediaCodec.queueInputBuffer(index, 0, size, 0, 0)
+                }
+                val outputIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0)
+                if (outputIndex > 0) {
+                    val outBuffer = mediaCodec.getOutputBuffer(outputIndex)
+                    outBuffer?.position(bufferInfo.offset)
+                    outBuffer?.limit(bufferInfo.size + bufferInfo.offset)
 
+                    val outputByteBuffer = ByteArray(bufferInfo.size + 7)
+                    addADTStoPacket(outputByteBuffer, bufferInfo.size + 7)
+                    outBuffer?.get(outputByteBuffer, 7, bufferInfo.size)
+                    outBuffer?.position(bufferInfo.offset)
+                    try {
+                        out.write(outputByteBuffer, 0, outputByteBuffer.size)
+                        out.flush()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    outBuffer?.position(bufferInfo.offset)
+                    mediaCodec.releaseOutputBuffer(outputIndex, false)
+                }
+            }
+        }
     }
 
 
@@ -95,25 +135,5 @@ object AudioEncodeManager {
         packet[4] = (packetLen and 0x7FF shr 3).toByte()
         packet[5] = ((packetLen and 7 shl 5) + 0x1F).toByte()
         packet[6] = 0xFC.toByte()
-    }
-
-    private fun getADTSampleRate(sampleRate: Int): Int {
-        var rate = 4
-        when (sampleRate) {
-            96000 -> rate = 0
-            88200 -> rate = 1
-            64000 -> rate = 2
-            48000 -> rate = 3
-            44100 -> rate = 4
-            32000 -> rate = 5
-            24000 -> rate = 6
-            22050 -> rate = 7
-            16000 -> rate = 8
-            12000 -> rate = 9
-            11025 -> rate = 10
-            8000 -> rate = 11
-            7350 -> rate = 12
-        }
-        return rate
     }
 }
