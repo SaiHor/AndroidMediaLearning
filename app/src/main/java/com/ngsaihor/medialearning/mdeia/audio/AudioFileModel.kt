@@ -2,7 +2,7 @@ package com.ngsaihor.medialearning.mdeia.audio
 
 import java.text.DecimalFormat
 
-data class PcmFileModel(val fileName: String = "", val filePath: String = "", val fileSize: Long = 0L) {
+data class AudioFileModel(val fileName: String = "", val filePath: String = "", val fileSize: Long = 0L) {
     fun getShowFileSize(): String {
         val df = DecimalFormat("#.00")
         var fileSizeString = ""

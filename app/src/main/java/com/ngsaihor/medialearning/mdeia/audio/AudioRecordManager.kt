@@ -3,16 +3,26 @@ package com.ngsaihor.medialearning.mdeia.audio
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Handler
+import android.os.Message
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.concurrent.ArrayBlockingQueue
+import java.lang.ref.WeakReference
 import java.util.concurrent.LinkedBlockingDeque
 
+typealias AudioRecordStateListener = (Int) -> Unit
+typealias AudioRecordTimerListener = (Int) -> Unit
+
 object AudioRecordManager {
+    const val STATE_PLAYING = 1
+    const val STATE_PAUSE = 2
+    const val STATE_STOP = 3
 
     private lateinit var audioRecord: AudioRecord
     private var bufferSize = 0
@@ -25,26 +35,46 @@ object AudioRecordManager {
     private var filePath = ""
     private var outputFileName = ""
 
+    private val handler: WeakHandler = WeakHandler(this)
 
-    fun setFilePathAndName(path:String,outputName:String){
+    private var stateListener: AudioRecordStateListener? = null
+    private var timerListener: AudioRecordTimerListener? = null
+
+    fun setStateListener(stateListener: AudioRecordStateListener) {
+        this@AudioRecordManager.stateListener = stateListener
+    }
+
+    fun setTimerListener(timerListener: AudioRecordTimerListener) {
+        this@AudioRecordManager.timerListener = timerListener
+    }
+
+    fun setFilePathAndName(path: String) {
         this.filePath = path
-        this.outputFileName = outputName
     }
 
     private fun initAudioRecord() {
         bufferSize =
-            AudioRecord.getMinBufferSize(AudioConfig.SAMPLE_RATE, AudioFormat.CHANNEL_IN_DEFAULT,AudioFormat.ENCODING_PCM_16BIT)
+            AudioRecord.getMinBufferSize(
+                AudioConfig.SAMPLE_RATE,
+                AudioFormat.CHANNEL_IN_DEFAULT,
+                AudioFormat.ENCODING_PCM_16BIT
+            )
         audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
-            AudioConfig.SAMPLE_RATE,AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT,
+            AudioConfig.SAMPLE_RATE, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT,
             bufferSize
         )
         bufferData = ByteArray(bufferSize)
     }
 
+    var currentTime = 0
     suspend fun startRecord(isResume: Boolean = false) {
         initAudioRecord()
         isRecording = true
+        withContext(Dispatchers.Main){
+            stateListener?.invoke(STATE_PLAYING)
+            handler.sendEmptyMessageDelayed(TIME_FLAG,1000)
+        }
         audioRecord.startRecording()
         if (!isResume) {
             fileName = "${System.currentTimeMillis()}.pcm"
@@ -80,6 +110,8 @@ object AudioRecordManager {
     }
 
     fun pause() {
+        handler.removeCallbacksAndMessages(null)
+        stateListener?.invoke(STATE_PAUSE)
         isRecording = false
         audioRecord.stop()
     }
@@ -88,10 +120,14 @@ object AudioRecordManager {
         if (fileName.isBlank()) {
             return
         }
+        stateListener?.invoke(STATE_PLAYING)
         startRecord(true)
     }
 
     fun stop() {
+        currentTime = 0
+        handler.removeCallbacksAndMessages(null)
+        stateListener?.invoke(STATE_STOP)
         pause()
         fileName = ""
         audioQueue.clear()
@@ -106,11 +142,35 @@ object AudioRecordManager {
 
     suspend fun stopAndTransformToAAC() {
         pause()
-        AudioEncodeManager.encodeAction(audioQueue,"$filePath/$outputFileName")
+        outputFileName = "${System.currentTimeMillis()}.aac"
+        AudioEncodeManager.encodeAction(audioQueue, "$filePath/$outputFileName")
         fileName = ""
         audioQueue.clear()
     }
 
+    private const val TIME_FLAG = 101
+
+    private class WeakHandler(panelView: AudioRecordManager) : Handler() {
+
+        private val weakReference: WeakReference<AudioRecordManager> =
+            WeakReference<AudioRecordManager>(panelView)
+
+        override fun handleMessage(msg: Message) {
+            val manager: AudioRecordManager? = weakReference.get()
+            if (manager == null) {
+                super.handleMessage(msg)
+                return
+            }
+            when (msg.what) {
+                TIME_FLAG -> {
+                    manager.timerListener?.invoke(++manager.currentTime)
+                    manager.handler.sendEmptyMessageDelayed(TIME_FLAG, 1000)
+                }
+            }
+            super.handleMessage(msg)
+        }
+
+    }
 
     private suspend fun pcmToWav() {
         val inFileName = filePath + fileName
@@ -131,7 +191,14 @@ object AudioRecordManager {
                 val wavFileLength = fileLength + wavFileHeaderSize
                 val channels = 2
                 val byteRate: Long = 16L * 44100L * channels / 8L
-                writeWaveFileHeader(outStream, fileLength, wavFileLength, 44100L, channels, byteRate)
+                writeWaveFileHeader(
+                    outStream,
+                    fileLength,
+                    wavFileLength,
+                    44100L,
+                    channels,
+                    byteRate
+                )
                 while (inStream.read(data) != -1) {
                     outStream.write(data)
                 }
@@ -141,7 +208,10 @@ object AudioRecordManager {
                 e.printStackTrace()
             } finally {
                 val file = File(outFileName)
-                Log.d("AudioRecordManager", "outFile path:${file.absolutePath} size:${file.length()}")
+                Log.d(
+                    "AudioRecordManager",
+                    "outFile path:${file.absolutePath} size:${file.length()}"
+                )
             }
         }
     }

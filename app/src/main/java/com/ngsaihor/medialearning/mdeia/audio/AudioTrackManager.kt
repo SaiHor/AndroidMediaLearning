@@ -26,7 +26,6 @@ object AudioTrackManager {
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setLegacyStreamType(AudioManager.STREAM_MUSIC)
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .setHapticChannelsMuted(false)
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .build()
         val audioFormat: AudioFormat = AudioFormat.Builder()
@@ -52,7 +51,6 @@ object AudioTrackManager {
         if (track.state != AudioTrack.STATE_INITIALIZED) {
             return
         }
-//        val filePath = context.cacheDir.absolutePath + "/" + fileName
         track.play()
         context.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -89,13 +87,13 @@ object AudioTrackManager {
         track.stop()
     }
 
-    suspend fun getPcmList(context: AppCompatActivity): List<PcmFileModel> {
+    suspend fun getPcmList(context: AppCompatActivity): List<AudioFileModel> {
         return withContext(Dispatchers.IO) {
             context.cacheDir.listFiles().filter {
                 it != null && it.exists() && it.isFile && it.name.substring(it.name.lastIndexOf("."))
                     .lowercase() == ".pcm".lowercase()
             }.map {
-                PcmFileModel(it.name, it.path, it.length())
+                AudioFileModel(it.name, it.path, it.length())
             }
         }
     }

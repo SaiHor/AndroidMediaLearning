@@ -115,7 +115,6 @@ object AudioDecodeManager {
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setLegacyStreamType(AudioManager.STREAM_MUSIC)
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .setHapticChannelsMuted(false)
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .build()
         val audioFormat: AudioFormat = AudioFormat.Builder()

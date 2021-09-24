@@ -6,9 +6,23 @@
     android:layout_height="match_parent"
     tools:context="com.ngsaihor.medialearning.MainActivity">
 
-   <SurfaceView
-       android:id="@+id/cameraSurface"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"/>
+
+   <Button
+       android:id="@+id/toRecord"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="录音功能预览"
+       app:layout_constraintEnd_toEndOf="parent"
+       app:layout_constraintStart_toStartOf="parent"
+       app:layout_constraintTop_toTopOf="parent" />
+
+   <Button
+       android:id="@+id/toCamera"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="相机功能预览"
+       app:layout_constraintEnd_toEndOf="parent"
+       app:layout_constraintStart_toStartOf="parent"
+       app:layout_constraintTop_toBottomOf="@+id/toRecord" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
