@@ -17,25 +17,41 @@ class AudioAdapter(val activtiy: Activity) : RecyclerView.Adapter<RecyclerView.V
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         (holder as AudioItemViewHolder).binData(data[position])
+        holder.setOnItemClickListener {
+            listener?.invoke(data[position])
+        }
+    }
+
+    var listener: ((audioData: AudioFileModel) -> Unit)? = null
+
+    fun setOnItemClickListener(listener: (audioData: AudioFileModel) -> Unit) {
+        this.listener = listener
     }
 
     override fun getItemCount() = data.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setData(list: List<AudioFileModel>){
+    fun setData(list: List<AudioFileModel>) {
         data.clear()
         data.addAll(list)
         notifyDataSetChanged()
     }
 }
 
-class AudioItemViewHolder(val binding: ItemAudioBinding) : RecyclerView.ViewHolder(binding.root) {
+class AudioItemViewHolder(private val binding: ItemAudioBinding) :
+    RecyclerView.ViewHolder(binding.root) {
 
     fun binData(audioData: AudioFileModel) {
         binding.apply {
             fileName.text = audioData.fileName
             filePath.text = audioData.filePath
             fileSize.text = audioData.getShowFileSize()
+        }
+    }
+
+    fun setOnItemClickListener(listener: () -> Unit) {
+        binding.root.setOnClickListener {
+            listener.invoke()
         }
     }
 }

@@ -17,7 +17,7 @@
         android:theme="@style/Theme.MediaLearning">
         <activity android:name="com.ngsaihor.medialearning.mdeia.video.MediaTestActivity"></activity>
         <activity android:name="com.ngsaihor.medialearning.camera.Camera2PreviewActivity" />
-        <activity android:name="com.ngsaihor.medialearning.mdeia.audio.AudioPlayActivity" />
+        <activity android:name="com.ngsaihor.medialearning.mdeia.audio.RecordPlayActivity" />
         <activity android:name="com.ngsaihor.medialearning.mdeia.audio.AudioRecordActivity" />
         <activity android:name="com.ngsaihor.medialearning.MainActivity">
             <intent-filter>

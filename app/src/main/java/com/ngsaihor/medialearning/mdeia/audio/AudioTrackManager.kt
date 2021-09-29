@@ -4,6 +4,8 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,12 +13,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
+import java.lang.ref.WeakReference
 
+typealias RecordPlayStateListener = (Int) -> Unit
+typealias RecordPlayTimerListener = (Int) -> Unit
 
 object AudioTrackManager {
 
+    const val STATE_PLAYING = 1
+    const val STATE_PAUSE = 2
+    const val STATE_STOP = 3
+
     private lateinit var track: AudioTrack
     private var bufferSize = 0
+    private var stateListener: RecordPlayStateListener? = null
+    private var timerListener: RecordPlayTimerListener? = null
+    private var currentFilePath: String? = null
+
+    fun setStateListener(stateListener: AudioRecordStateListener) {
+        this@AudioTrackManager.stateListener = stateListener
+    }
+
+    fun setTimerListener(timerListener: AudioRecordTimerListener) {
+        this@AudioTrackManager.timerListener = timerListener
+    }
+
+    private val handler: WeakHandler = WeakHandler(this)
 
     init {
         initAudioTrack()
@@ -47,15 +69,25 @@ object AudioTrackManager {
         )
     }
 
-    fun playPcmByFileName(filePath: String, context: AppCompatActivity) {
+    var currentTime = 0
+    suspend fun playPcmByFileName(filePath: String) {
         if (track.state != AudioTrack.STATE_INITIALIZED) {
             return
         }
+        currentFilePath = filePath
+        withContext(Dispatchers.Main) {
+            stateListener?.invoke(STATE_PLAYING)
+            handler.sendEmptyMessageDelayed(TIME_FLAG, 1000)
+        }
         track.play()
-        context.lifecycleScope.launch(Dispatchers.IO) {
+        play()
+    }
+
+    private suspend fun play() {
+        withContext(Dispatchers.IO) {
             try {
                 val audioData = ByteArray(bufferSize)
-                val fileInputStream = FileInputStream(filePath)
+                val fileInputStream = FileInputStream(currentFilePath)
                 while (fileInputStream.available() > 0) {
                     val readCount: Int = fileInputStream.read(audioData)
                     if (readCount == -1) {
@@ -69,33 +101,62 @@ object AudioTrackManager {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                withContext(Dispatchers.Main) {
+                    stateListener?.invoke(STATE_STOP)
+                    handler.removeCallbacksAndMessages(null)
+                }
             }
         }
     }
 
     fun pauseMusic() {
+        stateListener?.invoke(STATE_PAUSE)
+        handler.removeCallbacksAndMessages(null)
         track.pause()
     }
 
-    fun resumeMusic() {
-        if (track.playState == AudioTrack.PLAYSTATE_PAUSED) {
+    suspend fun resumeMusic() {
+        withContext(Dispatchers.Main){
+            stateListener?.invoke(STATE_PLAYING)
+            handler.sendEmptyMessageDelayed(TIME_FLAG, 1000)
+        }
+        if (track.playState == AudioTrack.PLAYSTATE_PAUSED && currentFilePath?.isNotBlank() == true) {
+            track.flush()
             track.play()
+            play()
         }
     }
 
     fun stopMusic() {
+        stateListener?.invoke(STATE_STOP)
+        handler.removeCallbacksAndMessages(null)
+        currentTime = 0
         track.stop()
     }
 
-    suspend fun getPcmList(context: AppCompatActivity): List<AudioFileModel> {
-        return withContext(Dispatchers.IO) {
-            context.cacheDir.listFiles().filter {
-                it != null && it.exists() && it.isFile && it.name.substring(it.name.lastIndexOf("."))
-                    .lowercase() == ".pcm".lowercase()
-            }.map {
-                AudioFileModel(it.name, it.path, it.length())
+    private const val TIME_FLAG = 101
+
+    private class WeakHandler(panelView: AudioTrackManager) : Handler() {
+
+        private val weakReference: WeakReference<AudioTrackManager> =
+            WeakReference<AudioTrackManager>(panelView)
+
+        override fun handleMessage(msg: Message) {
+            val manager: AudioTrackManager? = weakReference.get()
+            if (manager == null) {
+                super.handleMessage(msg)
+                return
             }
+            when (msg.what) {
+                TIME_FLAG -> {
+                    manager.timerListener?.invoke(++manager.currentTime)
+                    manager.handler.sendEmptyMessageDelayed(TIME_FLAG, 1000)
+                }
+            }
+            super.handleMessage(msg)
         }
+
     }
 
 }

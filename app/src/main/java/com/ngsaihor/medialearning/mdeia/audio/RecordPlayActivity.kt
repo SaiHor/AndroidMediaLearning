@@ -1,50 +1,45 @@
 package com.ngsaihor.medialearning.mdeia.audio
 
-import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ngsaihor.medialearning.databinding.ActivityAudioRecordBinding
+import com.ngsaihor.medialearning.databinding.ActivityAudioPlayBinding
 import com.ngsaihor.medialearning.formatTime
 import com.ngsaihor.medialearning.mdeia.audio.list.AudioAdapter
 import com.ngsaihor.medialearning.scanAudioFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
-class AudioRecordActivity : AppCompatActivity() {
+class RecordPlayActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityAudioRecordBinding
     private lateinit var adapter: AudioAdapter
+    private lateinit var binding: ActivityAudioPlayBinding
     private var isPause = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAudioRecordBinding.inflate(layoutInflater)
+        binding = ActivityAudioPlayBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        AudioRecordManager.setFilePathAndName(filesDir.absolutePath)
-        AudioRecordManager.setStateListener {
+        AudioTrackManager.setStateListener {
             when (it) {
                 AudioRecordManager.STATE_PLAYING -> {
                     isPause = false
-                    binding.start.isEnabled = false
-                    binding.pause.isVisible = true
-                    binding.stop.isVisible = true
-                    binding.pause.text = "暂停录音"
+                    binding.pause.text = "暂停播放"
                 }
                 AudioRecordManager.STATE_PAUSE -> {
                     isPause = true
-                    binding.pause.text = "继续录音"
+                    binding.pause.text = "继续播放"
                 }
                 AudioRecordManager.STATE_STOP -> {
                     binding.progress.text = "00:00:00"
-                    binding.start.isEnabled = true
-                    binding.pause.isVisible = false
-                    binding.stop.isVisible = false
                 }
             }
         }
-        AudioRecordManager.setTimerListener {
+        AudioTrackManager.setTimerListener {
             binding.progress.text = it.formatTime
         }
         initView()
@@ -54,25 +49,17 @@ class AudioRecordActivity : AppCompatActivity() {
     private fun initView() {
         binding.apply {
             progress.text = "00:00:00"
-            start.setOnClickListener {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    AudioRecordManager.startRecord(isPause)
-                }
-            }
             pause.setOnClickListener {
                 if (isPause) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        AudioRecordManager.startRecord(true)
+                        AudioTrackManager.resumeMusic()
                     }
                 } else {
-                    AudioRecordManager.pause()
+                    AudioTrackManager.pauseMusic()
                 }
             }
             stop.setOnClickListener {
-                AudioRecordManager.stop()
-                binding.root.postDelayed({
-                    adapter.setData(filesDir.scanAudioFile("aac","pcm"))
-                }, 100)
+                AudioTrackManager.stopMusic()
             }
         }
         adapter = AudioAdapter(this)
@@ -81,11 +68,19 @@ class AudioRecordActivity : AppCompatActivity() {
     }
 
     private fun initData() {
-        adapter.setData(filesDir.scanAudioFile("aac","pcm"))
+        val filePath = intent.getStringExtra("filePath") ?: ""
+        val file = File(filePath)
+        if (file.exists() && file.isFile){
+            lifecycleScope.launch(Dispatchers.IO) {
+                AudioTrackManager.playPcmByFileName(file.absolutePath)
+            }
+        }
+        adapter.setData(filesDir.scanAudioFile("aac", "pcm"))
         adapter.setOnItemClickListener {
-
+            binding.playingName.text = it.fileName
+            lifecycleScope.launch(Dispatchers.IO) {
+                AudioTrackManager.playPcmByFileName(it.filePath)
+            }
         }
     }
-
-
 }

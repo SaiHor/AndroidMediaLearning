@@ -7,22 +7,31 @@
     tools:context="com.ngsaihor.medialearning.MainActivity">
 
 
-   <Button
-       android:id="@+id/toRecord"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="录音功能预览"
-       app:layout_constraintEnd_toEndOf="parent"
-       app:layout_constraintStart_toStartOf="parent"
-       app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/toRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="录音功能预览"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-   <Button
-       android:id="@+id/toCamera"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="相机功能预览"
-       app:layout_constraintEnd_toEndOf="parent"
-       app:layout_constraintStart_toStartOf="parent"
-       app:layout_constraintTop_toBottomOf="@+id/toRecord" />
+    <Button
+        android:id="@+id/toRecordPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="录音播放预览"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toRecord" />
+
+    <Button
+        android:id="@+id/toCamera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="相机功能预览"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toRecordPlay" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
