@@ -82,6 +82,9 @@ object AudioEncodeManager {
                 }
 
             }
+            mediaCodec.stop()
+            mediaCodec.release()
+            out.close()
         }
     }
 
@@ -118,6 +121,9 @@ object AudioEncodeManager {
                     mediaCodec.releaseOutputBuffer(outputIndex, false)
                 }
             }
+            mediaCodec.stop()
+            mediaCodec.release()
+            out.close()
         }
     }
 
