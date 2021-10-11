@@ -34,4 +34,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toRecordPlay" />
 
+    <Button
+        android:id="@+id/toOpenGL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OpenGLTest"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toCamera" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
