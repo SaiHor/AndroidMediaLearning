@@ -1,4 +1,4 @@
-package com.ngsaihor.medialearning.opengl.shape
+package com.ngsaihor.medialearning.opengl.shape.simple_shape
 
 import android.opengl.GLES20
 import com.ngsaihor.medialearning.opengl.loadShader

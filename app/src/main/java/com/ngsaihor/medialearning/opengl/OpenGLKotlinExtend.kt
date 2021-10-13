@@ -1,7 +1,9 @@
 package com.ngsaihor.medialearning.opengl
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.opengl.GLES20.*
+import android.opengl.GLUtils
 import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStream
@@ -32,7 +34,7 @@ fun createProgramByShaderArray(
     val compileStatus = IntArray(1)
     glGetProgramiv(program, GL_LINK_STATUS, compileStatus, 0)
     Log.d("GLES20", "programID:$program complie info:${glGetProgramInfoLog(program)}")
-    if (compileStatus[0] == 0){
+    if (compileStatus[0] == 0) {
         glDeleteProgram(program)
         Log.d("GLES20", "program 链接失败")
         return 0
@@ -85,7 +87,7 @@ private fun readShaderTextFromResource(context: Context, resId: Int): String {
         inputStream?.close()
         bufferReader?.close()
     }
-    Log.d("GLES20",body.toString())
+    Log.d("GLES20", body.toString())
     return body.toString()
 }
 
@@ -94,4 +96,31 @@ fun loadShader(type: Int, shaderCode: String): Int {
     glShaderSource(shader, shaderCode)
     glCompileShader(shader)
     return shader
+}
+
+fun loadTexture(context: Context, resId: Int): Int {
+    val textureId = IntArray(1)
+    glGenTextures(1, textureId, 0)
+    if (textureId[0] == 0) {
+        Log.d("GLES20", "纹理对象创建失败")
+        return 0
+    }
+    val options = BitmapFactory.Options()
+    options.inScaled = false
+    val bitmap = BitmapFactory.decodeResource(context.resources,resId,options)
+    if (bitmap == null){
+        Log.d("GLES20", "读取贴图失败")
+        glDeleteTextures(1,textureId,0)
+        return 0
+    }
+    glBindTexture(GL_TEXTURE_2D,textureId[0])
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    GLUtils.texImage2D(GL_TEXTURE_2D,0,bitmap,0)
+    glGenerateMipmap(GL_TEXTURE_2D)
+    bitmap.recycle()
+    glBindTexture(GL_TEXTURE_2D,0)
+
+    return textureId[0]
 }
