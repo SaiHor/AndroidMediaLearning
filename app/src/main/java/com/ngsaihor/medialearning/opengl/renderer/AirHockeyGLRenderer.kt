@@ -85,10 +85,10 @@ class AirHockeyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         mallet.draw()
 
         // Draw the puck.
-//        positionObjectInScene(0f, puck.height / 2f, 0f)
-//        colorShaderProgram.setUniforms(modelViewProjectionMatrix, 0.8f, 0.8f, 1f)
-//        puck.bindData(colorShaderProgram)
-//        puck.draw()
+        positionObjectInScene(0f, puck.height / 2f, 0f)
+        colorShaderProgram.setUniforms(modelViewProjectionMatrix, 0.8f, 0.8f, 1f)
+        puck.bindData(colorShaderProgram)
+        puck.draw()
 
     }
 

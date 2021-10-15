@@ -6,7 +6,6 @@ import com.ngsaihor.medialearning.opengl.shader.ColorShaderProgram
 import com.ngsaihor.medialearning.opengl.shape.model.Cylinder
 import com.ngsaihor.medialearning.opengl.shape.model.Point
 import com.ngsaihor.medialearning.opengl.util.MalletBuilder
-import com.ngsaihor.medialearning.opengl.util.ObjectBuilder
 import com.ngsaihor.medialearning.opengl.util.VertexArray
 
 class Puck(radius: Float, val height: Float, numPointsAroundPuck: Int) : BaseShape() {

@@ -5,7 +5,6 @@ import com.ngsaihor.medialearning.opengl.shader.BaseShaderProgram
 import com.ngsaihor.medialearning.opengl.shader.ColorShaderProgram
 import com.ngsaihor.medialearning.opengl.shape.model.Point
 import com.ngsaihor.medialearning.opengl.util.MalletBuilder
-import com.ngsaihor.medialearning.opengl.util.ObjectBuilder
 import com.ngsaihor.medialearning.opengl.util.VertexArray
 
 class Mallet(radius: Float,val height: Float, numPointsAroundPuck: Int) : BaseShape() {
