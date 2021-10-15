@@ -3,24 +3,26 @@ package com.ngsaihor.medialearning.opengl.shape
 import android.util.Log
 import com.ngsaihor.medialearning.opengl.shader.BaseShaderProgram
 import com.ngsaihor.medialearning.opengl.shader.ColorShaderProgram
+import com.ngsaihor.medialearning.opengl.shape.model.Cylinder
 import com.ngsaihor.medialearning.opengl.shape.model.Point
 import com.ngsaihor.medialearning.opengl.util.MalletBuilder
 import com.ngsaihor.medialearning.opengl.util.ObjectBuilder
 import com.ngsaihor.medialearning.opengl.util.VertexArray
 
-class Mallet(radius: Float,val height: Float, numPointsAroundPuck: Int) : BaseShape() {
-
+class Puck(radius: Float, val height: Float, numPointsAroundPuck: Int) : BaseShape() {
     companion object {
         private const val POSITION_COMPONENT_COUNT = 3
     }
 
     private val generatedData: MalletBuilder.GeneratedData by lazy {
-        MalletBuilder.createMallet(Point(0f, 0f, 0f), radius, height, numPointsAroundPuck)
+        val cylinder = Cylinder(Point(0f, 0f, 0f), radius, height)
+        MalletBuilder.createPuck(cylinder, numPointsAroundPuck)
     }
 
     private val vertexArray: VertexArray by lazy {
         VertexArray(generatedData.vertexData)
     }
+
 
     override fun bindData(program: BaseShaderProgram) {
         super.bindData(program)
