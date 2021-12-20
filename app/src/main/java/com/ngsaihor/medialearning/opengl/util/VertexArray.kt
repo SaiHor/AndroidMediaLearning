@@ -11,8 +11,9 @@ class VertexArray(vertexData: FloatArray) {
         const val BYTE_PER_FLOAT = 4
     }
 
-    private val floatBuffer: FloatBuffer = ByteBuffer.allocateDirect(vertexData.size * BYTE_PER_FLOAT)
-        .order(ByteOrder.nativeOrder()).asFloatBuffer().put(vertexData)
+    private val floatBuffer: FloatBuffer =
+        ByteBuffer.allocateDirect(vertexData.size * BYTE_PER_FLOAT)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer().put(vertexData)
 
     fun setVertexAttribPointer(
         dataOffset: Int,
@@ -30,6 +31,12 @@ class VertexArray(vertexData: FloatArray) {
             floatBuffer
         )
         glEnableVertexAttribArray(attributeLocation)
+        floatBuffer.position(0)
+    }
+
+    fun updateBuffer(vertexData: FloatArray, start: Int, count: Int) {
+        floatBuffer.position(start)
+        floatBuffer.put(vertexData, start, count)
         floatBuffer.position(0)
     }
 

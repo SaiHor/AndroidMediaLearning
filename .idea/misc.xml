@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../../../layout/custom_preview.xml" value="0.5" />
+        <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.293" />
         <entry key="app/src/main/res/layout/activity_audio_play.xml" value="0.5635416666666667" />
         <entry key="app/src/main/res/layout/activity_audio_record.xml" value="0.5635416666666667" />
         <entry key="app/src/main/res/layout/activity_camera2_preview.xml" value="0.25" />
