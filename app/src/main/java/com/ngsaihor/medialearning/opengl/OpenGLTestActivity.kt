@@ -5,6 +5,7 @@ import android.opengl.GLSurfaceView
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.ngsaihor.medialearning.opengl.renderer.AirHockeyGLRenderer
+import com.ngsaihor.medialearning.opengl.renderer.FrameAnimRenderer
 import com.ngsaihor.medialearning.opengl.renderer.ParticleRenderer
 
 class OpenGLTestActivity : AppCompatActivity() {
@@ -19,7 +20,7 @@ class OpenGLTestActivity : AppCompatActivity() {
 
 
     private inner class MyGLSurfaceView(context: Activity) : GLSurfaceView(context) {
-        private val mGLRenderer = ParticleRenderer(context)
+        private val mGLRenderer = FrameAnimRenderer(context)
 
         init {
             setEGLContextClientVersion(2)
