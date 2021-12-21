@@ -8,11 +8,11 @@ class ParticleShaderProgram(context: Context) :
     BaseShaderProgram(context, R.raw.particle_vertex_shader, R.raw.particle_fragment_shader) {
 
     // Uniform locations
-    val uMatrixLocation: Int by lazy {
+    private val uMatrixLocation: Int by lazy {
         GLES20.glGetUniformLocation(program, U_MATRIX)
     }
 
-    val uTimeLocation: Int by lazy {
+    private val uTimeLocation: Int by lazy {
         GLES20.glGetUniformLocation(program, U_TIME)
     }
 

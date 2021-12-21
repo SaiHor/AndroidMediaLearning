@@ -22,13 +22,9 @@ class ParticleRenderer(val context: Context) : GLSurfaceView.Renderer {
     private var globalTime: Long = 0L
 
 
-    private val particleProgram: ParticleShaderProgram by lazy {
-        ParticleShaderProgram(context)
-    }
+    private lateinit var particleProgram: ParticleShaderProgram
 
-    private val particleSystem: ParticleSystem by lazy {
-        ParticleSystem(1000)
-    }
+    private lateinit var particleSystem: ParticleSystem
     private lateinit var redParticleShooter: ParticleShooter
 
     private lateinit var greenParticleShooter: ParticleShooter
@@ -37,11 +33,13 @@ class ParticleRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+        particleProgram = ParticleShaderProgram(context)
+        particleSystem = ParticleSystem(3000)
         globalTime = System.nanoTime()
-        val particleDirection = Vector(0f, 0.5f, 0f)
+        val particleDirection = Vector(0f, 1f, 0f)
         redParticleShooter = ParticleShooter(
             Point(-1f, 0f, 0f), particleDirection,
-            Color.rgb(255, 50, 5)
+            Color.rgb(255, 25, 5)
         )
         greenParticleShooter = ParticleShooter(
             Point(0f, 0f, 0f), particleDirection,
@@ -55,7 +53,7 @@ class ParticleRenderer(val context: Context) : GLSurfaceView.Renderer {
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         glViewport(0, 0, width, height)
-        perspectiveM(projectionMatrix, 0, 45f, (width / height * 1f), 1f, 10f)
+        perspectiveM(projectionMatrix, 0, 45f, (width.toFloat() / height.toFloat()), 1f, 10f)
         setIdentityM(viewMatrix, 0)
         translateM(viewMatrix, 0, 0f, -1.5f, -5f)
         multiplyMM(viewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0)

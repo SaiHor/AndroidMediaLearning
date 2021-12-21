@@ -16,10 +16,8 @@ class ParticleSystem(private val maxParticleCount: Int) {
         private const val COLOR_COMPONENT_COUNT = 3
         private const val VECTOR_COMPONENT_COUNT = 3
         private const val PARTICLE_START_TIME_COMPONENT_COUNT = 1
-        private const val TOTAL_COMPONENT_COUNT = (POSITION_COMPONENT_COUNT
-                + COLOR_COMPONENT_COUNT
-                + VECTOR_COMPONENT_COUNT
-                + PARTICLE_START_TIME_COMPONENT_COUNT)
+        private const val TOTAL_COMPONENT_COUNT =
+            POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT + VECTOR_COMPONENT_COUNT + PARTICLE_START_TIME_COMPONENT_COUNT
         private const val STRIDE: Int = TOTAL_COMPONENT_COUNT * BYTES_PER_FLOAT
     }
 
