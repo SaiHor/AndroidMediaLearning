@@ -16,6 +16,10 @@ class ParticleShaderProgram(context: Context) :
         GLES20.glGetUniformLocation(program, U_TIME)
     }
 
+    private val uTextureUnitLocation: Int by lazy {
+        GLES20.glGetUniformLocation(program, U_TEXTURE_UNIT)
+    }
+
     // Attribute locations
     val aPositionLocation: Int by lazy {
         GLES20.glGetAttribLocation(program, A_POSITION)
@@ -31,9 +35,13 @@ class ParticleShaderProgram(context: Context) :
         GLES20.glGetAttribLocation(program, A_PARTICLE_START_TIME)
     }
 
-    fun setUniforms(matrix: FloatArray?, elapsedTime: Float) {
+    fun setUniforms(matrix: FloatArray?, elapsedTime: Float, textureId: Int) {
         GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0)
         GLES20.glUniform1f(uTimeLocation, elapsedTime)
+
+        GLES20.glActiveTexture(textureId)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+        GLES20.glUniform1f(uTextureUnitLocation, 0f)
     }
 
 
