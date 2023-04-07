@@ -12,8 +12,8 @@ object AudioDecodeManager {
     private lateinit var mediaCodec: MediaCodec
     private var audioExtractor: MediaExtractor = MediaExtractor()
     private var isStop = true
-    private val rootsd = Environment.getExternalStorageDirectory()
-    private val output = File(rootsd?.absolutePath.toString() + "/test10086/pcm_output.pcm")
+    private val rootSd = Environment.getExternalStorageDirectory()
+    private val output = File(rootSd?.absolutePath.toString() + "/test10086/pcm_output.pcm")
     private var outputFilePath: String = output.absolutePath
     private lateinit var audioTrack: AudioTrack
 

@@ -26,7 +26,6 @@ object AudioRecordManager {
 
     private lateinit var audioRecord: AudioRecord
     private var bufferSize = 0
-    private lateinit var bufferData: ByteArray
 
     private var isRecording = false
     private var audioQueue: LinkedBlockingDeque<ByteArray> = LinkedBlockingDeque()
@@ -53,28 +52,35 @@ object AudioRecordManager {
     }
 
     private fun initAudioRecord() {
+        // 根据采样率，通道，音频格式计算最小缓冲区大小
+        // 音频写入文件之前的步骤：1、设置一个缓冲区去暂时存放音频 2、然后再把缓冲区里的数据写入文件
+        // 因此缓冲区大小需要>=单位音频的大小，调用getMinBufferSize可以获取最小缓冲区大小的值
         bufferSize =
             AudioRecord.getMinBufferSize(
                 AudioConfig.SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_DEFAULT,
                 AudioFormat.ENCODING_PCM_16BIT
             )
+        // 配置录制音频的录制器
+        // 注意这里的配置需要和getMinBufferSize的一致
+        // 比如如果AudioRecord设置的采样率>getMinBufferSize设置的采样率
+        // 那么会因为缓冲区大小不够而导致录制失败
         audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
             AudioConfig.SAMPLE_RATE, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT,
             bufferSize
         )
-        bufferData = ByteArray(bufferSize)
     }
 
     var currentTime = 0
     suspend fun startRecord(isResume: Boolean = false) {
         initAudioRecord()
         isRecording = true
-        withContext(Dispatchers.Main){
+        withContext(Dispatchers.Main) {
             stateListener?.invoke(STATE_PLAYING)
-            handler.sendEmptyMessageDelayed(TIME_FLAG,1000)
+            handler.sendEmptyMessageDelayed(TIME_FLAG, 1000)
         }
+        // 开始录制
         audioRecord.startRecording()
         if (!isResume) {
             fileName = "${System.currentTimeMillis()}.pcm"
@@ -89,11 +95,16 @@ object AudioRecordManager {
             }
             if (os != null) {
                 while (isRecording) {
+                    // 缓冲区
                     val audioData = ByteArray(bufferSize)
+
+                    // 通过read的方法把单位音频写入缓冲区
                     val read = audioRecord.read(audioData, 0, bufferSize)
                     if (AudioRecord.ERROR_INVALID_OPERATION != read) {
                         try {
                             audioQueue.add(audioData)
+
+                            // 把缓冲区的数据写入文件
                             os.write(audioData)
                         } catch (e: IOException) {
                             e.printStackTrace()
@@ -172,6 +183,10 @@ object AudioRecordManager {
 
     }
 
+    // 录制的音频格式是pcm
+    // pcm转wav方法
+    // wav是带头wav文件头的pcm容器
+    // 所以pcm转wav的方法就是通过写入wav的文件头，再写入pcm数据
     private suspend fun pcmToWav() {
         val inFileName = filePath + fileName
         val outFileName = filePath + "${System.currentTimeMillis()}.wav"
