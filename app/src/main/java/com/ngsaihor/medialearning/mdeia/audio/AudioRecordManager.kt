@@ -52,7 +52,7 @@ object AudioRecordManager {
     }
 
     private fun initAudioRecord() {
-        // 根据采样率，通道，音频格式计算最小缓冲区大小
+        // 根据采样率，声道，采样位数计算最小缓冲区大小
         // 音频写入文件之前的步骤：1、设置一个缓冲区去暂时存放音频 2、然后再把缓冲区里的数据写入文件
         // 因此缓冲区大小需要>=单位音频的大小，调用getMinBufferSize可以获取最小缓冲区大小的值
         bufferSize =
